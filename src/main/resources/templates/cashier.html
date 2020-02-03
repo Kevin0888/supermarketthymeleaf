@@ -112,13 +112,13 @@
         <hr>
     </div>
     <div align="right">
-        登录时间 ：<label th:text="${date}"> </label>
+        登录时间 ：<label th:text="${date}"></label>
         <hr>
     </div>
     <form action="" id="cashier_fm" method="post">
         <input type="hidden" id="shopping_num_txt" name="shoppingNum" th:value="${shoppingNum}">
         <div>
-            小票流水号:<p th:text="${shoppingNum}"></p>   输入商品条码：<input type="text" id="commodity_id_txt" name="commodityID"> 数量：<input
+            小票流水号:<a style=" margin-left: 20px;margin-right: 20px;" th:text="${shoppingNum}"></a>   输入商品条码：<input type="text" id="commodity_id_txt" name="commodityID"> 数量：<input
                     type="text" id="commodity_count_txt" name="count">
             <input type="button" id="add_btn" value="查询商品" onclick="addCommodity()"/>
             <input type="button" id="delete_btn" value="删除商品" onclick="removeCommodity()"/>
@@ -163,7 +163,7 @@
         <input type="hidden" name="category" th:value="${category}">
         <input type="hidden" name="total_cost" th:value="${totalCost}">
         <hr>
-        <div>实收：￥ <input type="text" onblur="calculate()" id=" " value='0.00'/> 元 找零：￥ <label id="cash_balance_lbl">0.0</label> 元
+        <div>实收：￥ <input type="text" name="receive_txt" onblur="calculate()" id="receive_txt" value='0.00'/> 元 找零：￥ <label id="cash_balance_lbl">0.0</label> 元
         </div>
         <input type="hidden" name="cash_receive" id="cash_receive">
         <input type="hidden" name="cash_balance" id="cash_balance">

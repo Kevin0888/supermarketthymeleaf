@@ -167,7 +167,6 @@ public class SuperMarketController {
     @RequestMapping(path = "/back2cashier", method = RequestMethod.GET)
     public String back2cashier(HttpServletRequest req) {
         List<OrderItemVO> ord = new ArrayList<>();
-        DateUtil.getCurrDateTime();
         req.setAttribute("orderItemList", ord);
         req.setAttribute("totalCost", 0);
         req.setAttribute("category", 0);
@@ -417,11 +416,10 @@ public class SuperMarketController {
         req.setAttribute("total_cost", totalCost);
         req.setAttribute("category", category);
         req.setAttribute("checkout_type", true);
-        req.setAttribute("cash_receive", 12);
-        req.setAttribute("cash_balance", 12);
+        req.setAttribute("cash_receive", cashReceive);
+        req.setAttribute("cash_balance", cashBalance);
         req.setAttribute("date",DateUtil.getCurrDateTime());
         return "receipt";
-//todo cash_reive 解决
         // todo 优化库存 定时任务恢复库存
     }
 
@@ -463,18 +461,20 @@ public class SuperMarketController {
         List<OrderItemVO> ord = supermarketService.getAllChecked(Integer.parseInt(shopNumber));
         for (OrderItemVO item1 : ord) {
             totalCost += item1.getTotal();
+            category += item1.getCount();
         }
         int totalMember = new Double(totalCost).intValue();
-        category = ord.size();
+//        category = ord.size();
         req.setAttribute("shoppingNum", shopNumber);
         req.setAttribute("orderItemList", ord);
-        req.setAttribute("total_cost", String.valueOf(totalCost));
-        req.setAttribute("category", String.valueOf(category));
+        req.setAttribute("total_cost", totalCost);
+        req.setAttribute("category", category);
         req.setAttribute("checkout_type", false);
         req.setAttribute("cash_balance", map.get("total"));
         req.setAttribute("member_id", memberId);
         req.setAttribute("member_current_points", totalMember);
         req.setAttribute("member_points", map.get("points"));
+        req.setAttribute("date",DateUtil.getCurrDateTime());
         return "receipt";
     }
 }
