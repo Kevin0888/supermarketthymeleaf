@@ -6,7 +6,9 @@
 </head>
 <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
 <script type="text/javascript">
-
+    $().ready(function(){
+        document.getElementById('user').innerHTML= window.localStorage.getItem("username");
+    });
 
     function addCommodity() {
 
@@ -111,8 +113,8 @@
         <h1>收银管理</h1>
         <hr>
     </div>
-    <div align="right">
-        登录时间 ：<label th:text="${date}"></label>
+    <div>
+        操作员:<a style=" margin-left: 15px;margin-right: 20px;" id="user"></a><label style="float:right;" th:text="'登录时间 ：'+ ${date}"></label>
         <hr>
     </div>
     <form action="" id="cashier_fm" method="post">
