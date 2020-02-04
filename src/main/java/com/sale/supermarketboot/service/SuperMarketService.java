@@ -175,6 +175,7 @@ public class SuperMarketService {
      *
      * @param orderNum
      */
+    
     public void updateOrder(int orderNum, double totalPrice, int memberId,int type) {
         Order order = new Order();
         order.setOrderNumber(orderNum);

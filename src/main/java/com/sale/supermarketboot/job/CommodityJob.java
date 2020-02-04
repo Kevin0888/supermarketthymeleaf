@@ -116,7 +116,7 @@ public class CommodityJob {
                 System.out.println("执行完毕，更新任务状态为失败");
             }
         } catch (Exception e) {
-            System.out.println("出现异常，开始更新状态为失败");
+            System.out.println("出现异常，开始更新状态为失败"+e.getMessage());
             //更新任务状态
             task.setStatus(TaskStatus.TASK_FAILED.getCode());
             task.setFrequency(task.getFrequency() + 1);

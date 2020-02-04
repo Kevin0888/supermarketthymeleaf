@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,10 +69,14 @@ public class SuperMarketController {
             return "error";
         }
         if (user.getRole() == 1 && user.getRole() == Integer.parseInt(role)) {
+            HttpSession session = req.getSession(true);
+            session.setAttribute("user",user);
             List<Member> list = supermarketService.getAllMembers();
             req.setAttribute("members", list);
             return "manager";
         } else if (user.getRole() == 2 && user.getRole() == Integer.parseInt(role)) {
+            HttpSession session = req.getSession(true);
+            session.setAttribute("user",user);
             List<OrderItemVO> ord = new ArrayList<>();
             req.setAttribute("orderItemList", ord);
             req.setAttribute("totalCost", 0);
@@ -81,6 +86,8 @@ public class SuperMarketController {
             return "cashier";
         } else if (user.getRole() == 1 && 2 == Integer.parseInt(role)) {
             List<OrderItemVO> ord = new ArrayList<>();
+            HttpSession session = req.getSession(true);
+            session.setAttribute("user",user);
             req.setAttribute("orderItemList", ord);
             req.setAttribute("totalCost", 0);
             req.setAttribute("category", 0);
