@@ -74,7 +74,14 @@ public class SuperMarketController {
             return "manager";
         } else if (user.getRole() ==2 && user.getRole() == Integer.parseInt(role)) {
             List<OrderItemVO> ord = new ArrayList<>();
-            DateUtil.getCurrDateTime();
+            req.setAttribute("orderItemList", ord);
+            req.setAttribute("totalCost", 0);
+            req.setAttribute("category", 0);
+            req.setAttribute("date",DateUtil.getCurrDateTime());
+            req.setAttribute("shoppingNum", 0);
+            return "cashier";
+        }else if (user.getRole() ==1 && 2 == Integer.parseInt(role)) {
+            List<OrderItemVO> ord = new ArrayList<>();
             req.setAttribute("orderItemList", ord);
             req.setAttribute("totalCost", 0);
             req.setAttribute("category", 0);
@@ -85,6 +92,61 @@ public class SuperMarketController {
         req.setAttribute("message", "选择正确的角色进入");
         return "error";
     }
+//    /**
+//     * 登录
+//     *
+//     * @param req
+//     * @return string
+//     * @throws ServletException
+//     * @throws IOException
+//     */
+//    @RequestMapping(path ="/loginTest", produces = {"text/html;charset=UTF-8"})
+//    public String loginTest(@RequestParam("username") String username,@RequestParam("password") String password,@RequestParam("role") String role,HttpServletRequest req) {
+//        logger.info("----进入loginTest方法");
+//////        String username = req.getParameter("username");
+////        if (StringUtils.isEmpty(username)) {
+////            req.setAttribute("message", "username can not be empty");
+////            return "error";
+////        }
+//////        String password = req.getParameter("password");
+////        if (StringUtils.isEmpty(password)) {
+////            req.setAttribute("message", "password can not be empty");
+////            return "error";
+////        }
+//////        String role = req.getParameter("role");
+////        if(StringUtils.isEmpty(role)){
+////            req.setAttribute("message", "role can not be empty");
+////            return "error";
+////        }
+////        User user = supermarketService.getUser(username, password);
+////        if (user == null) {
+////            req.setAttribute("message", "The user does not exist");
+////            return "error";
+////        }
+////        if ( user.getRole() ==1 && user.getRole() == Integer.parseInt(role)) {
+////            List<Member> list = supermarketService.getAllMembers();
+////            req.setAttribute("members", list);
+////            return "manager";
+////        } else if (user.getRole() ==2 && user.getRole() == Integer.parseInt(role)) {
+////            List<OrderItemVO> ord = new ArrayList<>();
+////            req.setAttribute("orderItemList", ord);
+////            req.setAttribute("totalCost", 0);
+////            req.setAttribute("category", 0);
+////            req.setAttribute("date",DateUtil.getCurrDateTime());
+////            req.setAttribute("shoppingNum", 0);
+////            return "cashier";
+////        }else if (user.getRole() ==1 && 2 == Integer.parseInt(role)) {
+////            List<OrderItemVO> ord = new ArrayList<>();
+////            req.setAttribute("orderItemList", ord);
+////            req.setAttribute("totalCost", 0);
+////            req.setAttribute("category", 0);
+////            req.setAttribute("date",DateUtil.getCurrDateTime());
+////            req.setAttribute("shoppingNum", 0);
+////            return "cashier";
+////        }
+////        req.setAttribute("message", "选择正确的角色进入");
+//        return "error";
+//    }
 
     /**
      * 添加会员
@@ -208,6 +270,7 @@ public class SuperMarketController {
         req.setAttribute("orderItemList", ord);
         req.setAttribute("totalCost", String.valueOf(totalCost));
         req.setAttribute("category", String.valueOf(category));
+        req.setAttribute("date",DateUtil.getCurrDateTime());
         return "cashier";
     }
 
@@ -241,6 +304,7 @@ public class SuperMarketController {
         req.setAttribute("orderItemList", ord);
         req.setAttribute("totalCost", totalCost);
         req.setAttribute("category", category);
+        req.setAttribute("date",DateUtil.getCurrDateTime());
         return "cashier";
     }
 
@@ -420,7 +484,6 @@ public class SuperMarketController {
         req.setAttribute("cash_balance", cashBalance);
         req.setAttribute("date",DateUtil.getCurrDateTime());
         return "receipt";
-        // todo 优化库存 定时任务恢复库存
     }
 
     /**

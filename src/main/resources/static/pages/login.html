@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html >
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -15,6 +15,37 @@
         $("#login_frm").attr('action', '/supermarket/login');
         $("#login_frm").submit();
     }
+    function login() {
+        var username = $(" input[ name='username' ] ").val();;
+        if (username == "" || username == undefined) {
+            alert("请输入有效的用户名");
+            return;
+        }
+        var password = $(" input[ name='password' ] ").val();;
+        if (password == "" || password == undefined) {
+            alert("请输入有效的密码");
+            return;
+        }
+       var role = $(" input[ name='role' ] ").val();
+        $.ajax({
+            type: "POST",
+            url: "/supermarket/login",
+            data:  {username: username,password:password,role:role
+            },
+            dataType: "json",
+            success: function (data) {
+                window.localStorage.setItem("username",username);
+                to_login();
+            },
+            error:function(data){
+                 alert("error");
+                window.localStorage.setItem("username",username);
+                window.localStorage.setItem("aaa","username");
+                to_login();
+            }
+
+        })
+    }
 </script>
 <body>
 <form id="login_frm" method="post">
@@ -26,19 +57,19 @@
         <input type="hidden" name="submitFlag" value="login"/>
         <br/>
         用户名:
-        <input type="text" name="username"/>
+        <input type="text" name="username" id="username"/>
         <br/>
         密&#12288码:
-        <input type="password" name="password"/>
+        <input type="password" name="password" id="password"/>
         <br/>
         <br/>
         身&#12288份:
-        <input type="radio" name="role" value=1>管理员
-        <input type="radio" name="role" value=2>收银员
+        <input type="radio"  name="role" value=1>管理员
+        <input type="radio"  name="role" value=2>收银员
         <br/>
         <br/>
         <div align="center">
-            <input type="button" value="登 录" onclick="to_login()"/>
+            <input type="button" value="登 录" onclick="login()"/>
             <input type="button" value="进 货" onclick="to_manage_commodities()"/></div>
     </div>
     <br/>

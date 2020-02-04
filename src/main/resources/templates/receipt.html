@@ -4,6 +4,12 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>receipt</title>
 </head>
+<script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
+<script type="text/javascript">
+    $().ready(function(){
+        document.getElementById('username').innerHTML= window.localStorage.getItem("username");
+    });
+</script>
 <body style="text-align: center">
 <div align="left" >
     <a href="/supermarket/back2cashier">返回</a>
@@ -16,7 +22,7 @@
     <table>
         <tbody>
         <tr>
-            <td align="left"><label>收银员: No.1001</label></td>
+            <td align="left">收银员:<label id ="username"></label></td>
             <td align="right"><label>机号: Admin</label></td>
         </tr>
         <tr>

@@ -1,18 +1,22 @@
 package com.sale.supermarketboot.service;
 
 
+import com.alibaba.fastjson.JSON;
 import com.sale.supermarketboot.dao.*;
+import com.sale.supermarketboot.enums.TaskStatus;
+import com.sale.supermarketboot.enums.TaskType;
 import com.sale.supermarketboot.pojo.*;
 import com.sale.supermarketboot.utils.CommodityVO;
 import com.sale.supermarketboot.utils.IDUtil;
 import com.sale.supermarketboot.utils.OrderItemVO;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +39,9 @@ public class SuperMarketService {
     CommodityDao commodityDao;
     @Autowired
     MemberRecordDao memberRecordDao;
+    @Autowired
+    TaskDao taskDao;
+
 
 
     /**
@@ -168,12 +175,12 @@ public class SuperMarketService {
      *
      * @param orderNum
      */
-    public void updateOrder(int orderNum, double totalPrice, int memberId) {
+    public void updateOrder(int orderNum, double totalPrice, int memberId,int type) {
         Order order = new Order();
         order.setOrderNumber(orderNum);
         order.setSum(totalPrice);
         order.setMemberId(memberId);
-        order.setCheckoutType(1);
+        order.setCheckoutType(type);
         orderDao.update(order);
 
     }
@@ -209,13 +216,14 @@ public class SuperMarketService {
         orderItem.setIsChecked(isChecked);
         orderItemDao.update(orderItem);
     }
+
     /**
      * 更新订单详情商品数量
      *
      * @param orderNumber
      * @param count
      */
-    public void updateOrderCount(int orderNumber, int commodityId, int count,double totalPrice) {
+    public void updateOrderCount(int orderNumber, int commodityId, int count, double totalPrice) {
         OrderItem orderItem = new OrderItem();
         orderItem.setOrderNumber(orderNumber);
         orderItem.setCommodityId(commodityId);
@@ -258,22 +266,27 @@ public class SuperMarketService {
         int orderNum = Integer.parseInt(orderNumber);
         double totalCost = Double.parseDouble(total);
         //更新订单信息
-        updateOrder(orderNum, totalCost, 0);
+        updateOrder(orderNum, totalCost, 0,1);
         //更新库存数量commdity表
         List<OrderItem> orderItemList = getOrders(orderNum);
         for (OrderItem item : orderItemList) {
             int commodityID = item.getCommodityId();
-            Commodity commodity = getCommodity(commodityID);
-            int stock = commodity.getStock();
-            int count = item.getCount();
-            int newStock = stock - count;
-            if (newStock < 0) {
-                newStock = 0;
-            }
-            updateCommodityChecked(commodityID, newStock);
+//            Commodity commodity = getCommodity(commodityID);
+//            int stock = commodity.getStock();
+//            int count = item.getCount();
+//            int newStock = stock - count;
+//            if (newStock < 0) {
+//                newStock = 0;
+//            }
+//            updateCommodityChecked(commodityID, newStock);
             //更新订单详情状态为已结账
             int isCheck = 1;
             updateOrderItem(orderNum, commodityID, isCheck);
+            //删除定时任务
+            Task task = new Task();
+            task.setStatus(5);
+            task.setOrderNumber(orderNum);
+            cancelTask(task);
         }
         return 0;
     }
@@ -297,22 +310,27 @@ public class SuperMarketService {
         double totalCost = Double.parseDouble(total);
         int totalMember = new Double(totalCost).intValue();
         //更新订单信息
-        updateOrder(shopNum, totalCost, memberID);
+        updateOrder(shopNum, totalCost, memberID,1);
         //更新库存数量commdity表
         List<OrderItem> orderItemList = getOrders(shopNum);
         for (OrderItem item : orderItemList) {
             int commodityID = item.getCommodityId();
-            Commodity commodity = getCommodity(commodityID);
-            int stock = commodity.getStock();
-            int count = item.getCount();
-            int newStock = stock - count;
-            if (newStock < 0) {
-                newStock = 0;
-            }
-            updateCommodityChecked(commodityID, newStock);
+//            Commodity commodity = getCommodity(commodityID);
+//            int stock = commodity.getStock();
+//            int count = item.getCount();
+//            int newStock = stock - count;
+//            if (newStock < 0) {
+//                newStock = 0;
+//            }
+//            updateCommodityChecked(commodityID, newStock);
             //更新订单详情状态为已结账
             int isCheck = 1;
             updateOrderItem(shopNum, commodityID, isCheck);
+            //删除定时任务
+            Task task = new Task();
+            task.setStatus(5);
+            task.setOrderNumber(shopNum);
+            cancelTask(task);
         }
         //添加会员消费记录
         addMemberRecord(memberID, shopNum, totalCost);
@@ -350,13 +368,19 @@ public class SuperMarketService {
     public int addCommodity(String commodityID, String count, String shoppingNumStr) {
         int commodityCount = Integer.parseInt(count);
         int commodityId = Integer.parseInt(commodityID);
+
         //根据Id查商品详情
         Commodity commodity = getCommodity(Integer.parseInt(commodityID));
         if (commodity == null || commodity.getStock() < 0) {
             return 0;
         }
+        int newStock = 0;
+        //库存不足，购买数量=库存
         if (commodity.getStock() < commodityCount) {
             commodityCount = commodity.getStock();
+        } else {
+            //新库存=当前库存减去购买数量
+            newStock = commodity.getStock() - commodityCount;
         }
         //根据流水号判断是否添加订单
         int shoppingNumber = Integer.parseInt(shoppingNumStr);
@@ -383,6 +407,10 @@ public class SuperMarketService {
             orderItem.setIsChecked(0);
             //添加订单详情
             addOrderItem(orderItem);
+            //更新库存
+            updateCommodityChecked(commodityId, newStock);
+            //添加定时任务
+            saveTask(shoppingNumber,commodityId,commodityCount);
             return shoppingNumber;
         }
         //存在相同订单，更新记录
@@ -395,13 +423,68 @@ public class SuperMarketService {
         double totalPrice = commodityCount * commodity.getPrice();
         //更新订单详情
         updateOrderCount(shoppingNumber, commodityId, commodityCount, totalPrice);
+        //更新库存
+        updateCommodityChecked(commodityId, newStock);
+        //添加定时任务
+        saveTask(shoppingNumber,commodityId,commodityCount);
         return shoppingNumber;
     }
 
+    /**
+     * 查询相同订单的商品
+     *
+     * @param commodityID
+     * @param shoppingNumber
+     * @return
+     */
     public OrderItem getSameOrder(int commodityID, int shoppingNumber) {
         return orderItemDao.getSameOrder(shoppingNumber, commodityID);
     }
 
+    /**
+     * 查询task定时任务
+     * @return
+     */
+    public List<Task> selectTask(Integer status, Timestamp timestamp, String dataType){
+        return taskDao.selectTask(status,timestamp,dataType);
+    }
+
+    /**
+     * 更新定时任务
+     * @param param
+     */
+    public void updateTask(Task param){
+        taskDao.updateTask(param);
+    }
+
+    /**
+     * 取消定时任务
+     * @param param
+     */
+    public void cancelTask(Task param){
+        taskDao.cancelTask(param);
+    }
+    /**
+     * 创建定时任务
+     * @param orderNum
+     * @param commodityId
+     * @param count
+     */
+    public void  saveTask(int orderNum,int commodityId,int count){
+
+        Task task = new Task();
+        Map<String,Integer> map = new HashMap();
+        map.put("commodityId", commodityId);
+        map.put("count", count);
+        task.setMsg(JSON.toJSONString(map));
+        task.setOrderNumber(orderNum);
+        task.setCreateTime(new Timestamp(System.currentTimeMillis()));
+        task.setFrequency(0);
+        task.setDataType(TaskType.TASK_COMMODITY.getCode());
+        task.setRemark("order");
+        task.setStatus(TaskStatus.TASK_UNDO.getCode());
+        taskDao.saveTask(task);
+    }
 
 }
 
